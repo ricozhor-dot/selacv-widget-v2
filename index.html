@@ -107,6 +107,7 @@
   <nav class="tabs">
     <button class="tab-btn active" data-view="dashboard">⌂ Tableau de bord <span class="role">Direction</span></button>
     <button class="tab-btn" data-view="saisie">＋ Nouvelle commande <span class="role">Agent</span></button>
+    <button class="tab-btn" data-view="modifier">✎ Modifier une commande <span class="role">Agent</span></button>
     <button class="tab-btn" data-view="consult">☰ Commandes <span class="role">Suivi</span></button>
     <button class="tab-btn" data-view="stats">◆ Analyses <span class="role">Pilotage</span></button>
   </nav>
@@ -276,6 +277,49 @@
     </div>
   </section>
 
+  <!-- ============ VUE 2 : MODIFICATION ============ -->
+  <section class="view" id="view-modifier">
+    <div class="panel">
+      <h2>Modifier une commande</h2>
+      <div class="desc">Sélectionnez une commande, corrigez les informations nécessaires puis enregistrez les modifications directement dans Grist.</div>
+      <div class="field" style="margin:18px 0; max-width:760px;">
+        <label>Commande à modifier</label>
+        <select id="edit_record_select"><option value="">— Sélectionner une commande —</option></select>
+      </div>
+      <div id="editEmpty" class="empty-state">Choisissez une commande dans la liste pour afficher son contenu.</div>
+      <form id="formModifier" style="display:none;">
+        <input type="hidden" id="edit_id">
+        <div class="field" style="margin-bottom:14px; max-width:320px;">
+          <label>Type de budget</label>
+          <div class="type-toggle" id="editTypeToggle">
+            <button type="button" data-type="Fonctionnement" class="on">Fonctionnement</button>
+            <button type="button" data-type="Investissement">Investissement</button>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Site</label><select id="e_site" required><option>Cathédrale</option><option>Citadelle</option><option>Saint-Leu</option></select></div>
+          <div class="field"><label>Date</label><input type="date" id="e_date" required></div>
+          <div class="field"><label>N° BC / OS</label><input type="text" id="e_numbc"></div>
+          <div class="field"><label>Centre de coût</label><input type="text" id="e_centrecout"></div>
+          <div class="field"><label>Fournisseur</label><input type="text" id="e_fournisseur" list="dl_fournisseurs" required></div>
+          <div class="field"><label>Centrale d'achat</label><input type="text" id="e_centrale" list="dl_centrales"></div>
+          <div class="field"><label>Catégorie</label><input type="text" id="e_categorie" list="dl_categories" required></div>
+          <div class="field"><label>Marché</label><select id="e_marches"><option value="">—</option><option value="oui">oui</option><option value="non">non</option></select></div>
+          <div class="field span2"><label>Objet de la commande</label><input type="text" id="e_objet" required></div>
+          <div class="field span2"><label>Motivations d'achat</label><textarea id="e_motivations"></textarea></div>
+          <div class="field"><label>Montant TTC (€)</label><input type="number" step="0.01" min="0" id="e_montant" required></div>
+          <div class="field"><label>Validation (agent)</label><input type="text" id="e_validation"></div>
+          <div class="field"><label>État commande</label><select id="e_etat"><option>Attente</option><option>Livrée</option><option>Partielle</option><option>Annulée</option><option>Retour</option></select></div>
+          <div class="field"><label>Postes manquants</label><input type="text" id="e_postes"></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="btnCancelEdit">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveEdit">✓ Enregistrer les modifications</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
   <!-- ============ VUE 2 : CONSULTATION ============ -->
   <section class="view" id="view-consult">
     <div class="site-tabs" id="siteTabs">
@@ -309,7 +353,7 @@
           <thead><tr>
             <th data-k="Date">Date</th><th data-k="Site">Site</th><th data-k="Type">Type</th>
             <th data-k="Fournisseur">Fournisseur</th><th data-k="Categorie">Catégorie</th>
-            <th data-k="Objet">Objet</th><th data-k="MontantTTC">Montant</th><th data-k="EtatCommande">État</th>
+            <th data-k="Objet">Objet</th><th data-k="MontantTTC">Montant</th><th data-k="EtatCommande">État</th><th>Action</th>
           </tr></thead>
           <tbody id="consultBody"></tbody>
         </table>
@@ -393,6 +437,7 @@ let mappings = null;
 let budgets = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
 let selectedSite = "__all__";
 let selectedType = "Fonctionnement"; // for saisie form
+let selectedEditType = "Fonctionnement";
 let sortKey = "Date", sortDir = -1;
 let charts = {};
 
@@ -658,6 +703,49 @@ function etatSelect(r){
   </select>`;
 }
 
+/* ================= MODIFICATION ================= */
+function renderEditOptions(){
+  const sel = document.getElementById("edit_record_select");
+  const current = sel.value;
+  const sorted = [...records].sort((a,b)=>(b.Date||"").localeCompare(a.Date||"") || (b.id||0)-(a.id||0));
+  sel.innerHTML = `<option value="">— Sélectionner une commande —</option>` + sorted.map(r=>
+    `<option value="${r.id}">${r.Date||"Sans date"} · ${escapeHtml(r.Site)} · ${escapeHtml(r.Fournisseur)} · ${escapeHtml(r.Objet)} · ${fmtEUR(r.MontantTTC)}</option>`
+  ).join("");
+  if (sorted.some(r=>String(r.id)===String(current))) sel.value=current;
+}
+function loadEditRecord(id){
+  const r = records.find(x=>String(x.id)===String(id));
+  const form=document.getElementById("formModifier"), empty=document.getElementById("editEmpty");
+  if(!r){ form.style.display="none"; empty.style.display="block"; return; }
+  empty.style.display="none"; form.style.display="block";
+  document.getElementById("edit_id").value=r.id;
+  selectedEditType=r.Type||"Fonctionnement";
+  document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on", b.dataset.type===selectedEditType));
+  const values={e_site:r.Site,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
+  Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el) el.value=v??"";});
+}
+document.querySelectorAll("#editTypeToggle button").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on"); selectedEditType=btn.dataset.type;
+}));
+document.getElementById("edit_record_select").addEventListener("change",e=>loadEditRecord(e.target.value));
+document.getElementById("btnCancelEdit").addEventListener("click",()=>{
+  document.getElementById("edit_record_select").value=""; loadEditRecord("");
+});
+document.getElementById("formModifier").addEventListener("submit",async e=>{
+  e.preventDefault(); const btn=document.getElementById("btnSaveEdit"); btn.disabled=true;
+  try{
+    const id=Number(document.getElementById("edit_id").value);
+    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Site:document.getElementById("e_site").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value,PostesManquants:document.getElementById("e_postes").value};
+    await updateRecord(id,fields); toast("Commande modifiée ✓");
+  }catch(err){console.error(err);toast("Erreur lors de la modification : "+(err.message||err),true);}finally{btn.disabled=false;}
+});
+function openEditRecord(id){
+  goToView("modifier");
+  document.getElementById("edit_record_select").value=String(id);
+  loadEditRecord(id);
+}
+
 /* ================= CONSULTATION ================= */
 document.getElementById("siteTabs").addEventListener("click", (e)=>{
   const btn = e.target.closest("button"); if(!btn) return;
@@ -789,6 +877,7 @@ function renderConsultTable(){
       <td>${escapeHtml(r.Objet)}</td>
       <td class="mono">${fmtEUR(r.MontantTTC)}</td>
       <td>${badge(r.EtatCommande)}</td>
+      <td><button class="btn btn-ghost btn-sm edit-row" data-id="${r.id}">Modifier</button></td>
     </tr>
   `).join("");
 
@@ -799,6 +888,7 @@ function renderConsultTable(){
   const cur = catSel.value;
   const cats = [...new Set(records.map(r=>r.Categorie).filter(Boolean))].sort();
   catSel.innerHTML = `<option value="">Toutes catégories</option>` + cats.map(c=>`<option ${c===cur?"selected":""}>${c}</option>`).join("");
+  document.querySelectorAll(".edit-row").forEach(btn=>btn.addEventListener("click",()=>openEditRecord(btn.dataset.id)));
 }
 
 function badge(etat){
@@ -1011,6 +1101,7 @@ function renderAll(){
   renderDashboard();
   renderRecentEntries();
   renderDatalists();
+  renderEditOptions();
   renderBudgetCards();
   renderConsultTable();
   renderKPIs();
