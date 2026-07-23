@@ -1234,6 +1234,7 @@ td.public-holiday .day-stack{opacity:.95}
 .schedule-target-cell .hours-diff{display:inline-flex;align-items:center;justify-content:center;margin:auto}
 #scheduleValidation{text-align:center;display:flex;align-items:center;justify-content:center;min-height:38px}
 
+.loges-grid{display:grid;grid-template-columns:repeat(3,minmax(320px,1fr));gap:16px}.loges-calendar{width:100%;font-size:11px}.loges-calendar th{background:#22356f;color:#fff}.loges-calendar td{height:34px;background:#fff;border:1px solid #d8ddeb;color:#22356f;font-weight:700}@media(max-width:900px){.loges-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1297,7 +1298,13 @@ td.public-holiday .day-stack{opacity:.95}
 </section>
 <section class="view" id="logesView">
   <div class="top"><div><h1>Logés</h1><div class="subtitle">Gestion et suivi des agents logés — module à compléter selon la règle métier.</div></div></div>
-  <div class="panel"><div class="empty-state">Le module Logés est créé. La source de données et les règles d’attribution restent à définir.</div></div>
+  <div class="panel loges-module">
+<div class="top"><div><h2>Agendas Logés</h2><div class="subtitle">Projection mensuelle des astreintes par site</div></div></div>
+<div class="loges-grid">
+<section class="dashboard-card"><h2>🏢 Citadelle - Cathédrale</h2><table class="loges-calendar"><thead><tr><th>Agent</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr></thead><tbody><tr><th>BELLARD Christophe</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>VIENNE Corinne</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>CARLE Stéphane</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>MASSON Guillaume</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>MULOT Stéphane</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>LORIOT Robert</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>LAMACZ Christian</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr></tbody></table></section>
+<section class="dashboard-card"><h2>🏢 Saint-Leu</h2><table class="loges-calendar"><thead><tr><th>Agent</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr></thead><tbody><tr><th>BELLARD Christophe</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>VIENNE Corinne</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>CARLE Stéphane</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>MASSON Guillaume</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>MULOT Stéphane</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>LORIOT Robert</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>LAMACZ Christian</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr></tbody></table></section>
+<section class="dashboard-card"><h2>🏢 Saint-Charles</h2><table class="loges-calendar"><thead><tr><th>Agent</th><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr></thead><tbody><tr><th>BELLARD Christophe</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>VIENNE Corinne</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>CARLE Stéphane</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>MASSON Guillaume</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>MULOT Stéphane</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>LORIOT Robert</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr><tr><th>LAMACZ Christian</th><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td><td>□</td></tr></tbody></table></section>
+</div></div>
 </section>
 
 <section class="view" id="analyseView">
